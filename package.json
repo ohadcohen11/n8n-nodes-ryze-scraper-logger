@@ -1,5 +1,5 @@
 {
-	"name": "n8n-nodes-<...>",
+	"name": "n8n-nodes-ryze-scraper-logger",
 	"version": "0.1.0",
 	"description": "",
 	"license": "MIT",
@@ -8,12 +8,12 @@
 		"n8n-community-node-package"
 	],
 	"author": {
-		"name": "",
-		"email": ""
+		"name": "Ryze Beyond",
+		"email": "ohad.cohen@ryzebeyond.com"
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/<...>/n8n-nodes-<...>.git"
+		"url": "https://github.com/ohadcohen11/n8n-nodes-ryze-scraper-logger.git"
 	},
 	"scripts": {
 		"build": "n8n-node build",
@@ -32,11 +32,13 @@
 		"strict": true,
 		"credentials": [
 			"dist/credentials/GithubIssuesApi.credentials.js",
-			"dist/credentials/GithubIssuesOAuth2Api.credentials.js"
+			"dist/credentials/GithubIssuesOAuth2Api.credentials.js",
+			"dist/credentials/MySql.credentials.js"
 		],
 		"nodes": [
 			"dist/nodes/GithubIssues/GithubIssues.node.js",
-			"dist/nodes/Example/Example.node.js"
+			"dist/nodes/Example/Example.node.js",
+			"dist/nodes/RyzeScraperLogger/RyzeScraperLogger.node.js"
 		]
 	},
 	"devDependencies": {
@@ -48,5 +50,8 @@
 	},
 	"peerDependencies": {
 		"n8n-workflow": "*"
+	},
+	"dependencies": {
+		"mysql2": "^3.6.0"
 	}
 }
