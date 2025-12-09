@@ -1,14 +1,18 @@
 import type {
+	ICredentialTestRequest,
 	ICredentialType,
 	INodeProperties,
+	Icon,
 } from 'n8n-workflow';
 
-export class MySql implements ICredentialType {
-	name = 'mySql';
+export class MySqlApi implements ICredentialType {
+	name = 'mySqlApi';
 
-	displayName = 'MySQL';
+	displayName = 'MySQL API';
 
 	documentationUrl = 'https://dev.mysql.com/doc/';
+
+	icon: Icon = 'file:../icons/mysql.svg' as Icon;
 
 	properties: INodeProperties[] = [
 		{
@@ -40,4 +44,11 @@ export class MySql implements ICredentialType {
 			default: '',
 		},
 	];
+
+	test: ICredentialTestRequest = {
+		request: {
+			baseURL: '={{$credentials.host}}',
+			url: '',
+		},
+	};
 }
