@@ -9,12 +9,15 @@ import { NodeConnectionTypes, NodeOperationError } from 'n8n-workflow';
 interface ILogData {
 	script_id: number;
 	execution_mode: string;
+	execution_type: string;
+	workflow_name: string;
 	status: string;
 	items_processed: number;
 	pixel_new: number;
 	pixel_duplicates: number;
 	pixel_updated: number;
 	event_summary: string;
+	full_details: string;
 }
 
 interface ISummary {
@@ -65,9 +68,9 @@ export class RyzeScraperLogger implements INodeType {
 				name: 'table',
 				type: 'string',
 				required: true,
-				default: 'scraper_execution_logs',
+				default: 'n8n_scraper_logs',
 				description: 'Table name for storing execution logs',
-				placeholder: 'scraper_execution_logs',
+				placeholder: 'n8n_scraper_logs',
 			},
 			{
 				displayName: 'Script ID',
@@ -145,23 +148,34 @@ export class RyzeScraperLogger implements INodeType {
 					mode = execution.mode || 'regular';
 				}
 
+				// Determine execution type (manual or scheduled)
+				const workflowMode = this.getMode();
+				const executionType = workflowMode === 'manual' ? 'manual' : 'scheduled';
+
+				// Get workflow name
+				const workflow = this.getWorkflow();
+				const workflowName = workflow.name || 'Unknown';
+
 				// Determine status
 				const status = (summary.pixel_failed ?? 0) > 0 ? 'failed' : 'success';
 
 				// Prepare log data
-				const logData = {
+				const logData: ILogData = {
 					script_id: scriptId,
 					execution_mode: mode,
+					execution_type: executionType,
+					workflow_name: workflowName,
 					status: status,
 					items_processed: summary.total_input || 0,
 					pixel_new: summary.new_items || 0,
 					pixel_duplicates: summary.exact_duplicates || 0,
 					pixel_updated: summary.updated_items || 0,
 					event_summary: JSON.stringify(summary.event_summary || {}),
+					full_details: JSON.stringify(input),
 				};
 
 				if (options.verboseLogging) {
-					this.logger.info('Ryze Scraper Logger - Logging data:', logData);
+					this.logger.info('Ryze Scraper Logger - Logging data', { logData: JSON.stringify(logData) });
 				}
 
 				// Insert to MySQL
@@ -229,20 +243,25 @@ async function insertLog(
 	try {
 		const query = `
 			INSERT INTO ${database}.${table}
-				(script_id, execution_mode, status, items_processed, pixel_new, pixel_duplicates, pixel_updated, event_summary)
+				(script_id, execution_mode, execution_type, workflow_name, status,
+				 items_processed, pixel_new, pixel_duplicates, pixel_updated,
+				 event_summary, full_details)
 			VALUES
-				(?, ?, ?, ?, ?, ?, ?, ?)
+				(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
 		`;
 
 		await connection.execute(query, [
 			logData.script_id,
 			logData.execution_mode,
+			logData.execution_type,
+			logData.workflow_name,
 			logData.status,
 			logData.items_processed,
 			logData.pixel_new,
 			logData.pixel_duplicates,
 			logData.pixel_updated,
 			logData.event_summary,
+			logData.full_details,
 		]);
 	} finally {
 		await connection.end();
