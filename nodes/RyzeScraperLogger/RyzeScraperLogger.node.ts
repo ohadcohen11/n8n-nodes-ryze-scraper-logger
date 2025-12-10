@@ -141,6 +141,7 @@ export class RyzeScraperLogger implements INodeType {
 				// Extract data from Ryze Pixel Sender output
 				const summary = (input.summary || {}) as ISummary;
 				const execution = (input.execution || {}) as IExecution;
+				const details = (input.details || {}) as any;
 
 				// Determine execution mode
 				let mode = executionMode;
@@ -159,6 +160,9 @@ export class RyzeScraperLogger implements INodeType {
 				// Determine status
 				const status = (summary.pixel_failed ?? 0) > 0 ? 'failed' : 'success';
 
+				// Extract only the transaction items array
+				const sentItems = details.sent_items?.items || [];
+
 				// Prepare log data
 				const logData: ILogData = {
 					script_id: scriptId,
@@ -171,7 +175,7 @@ export class RyzeScraperLogger implements INodeType {
 					pixel_duplicates: summary.exact_duplicates || 0,
 					pixel_updated: summary.updated_items || 0,
 					event_summary: JSON.stringify(summary.event_summary || {}),
-					full_details: JSON.stringify(input),
+					full_details: JSON.stringify(sentItems),
 				};
 
 				if (options.verboseLogging) {
